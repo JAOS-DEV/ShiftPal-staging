@@ -5,3 +5,4 @@ export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as InfoButton } from "./InfoButton";
 export { default as InfoModal } from "./InfoModal";
 export * from "./icons";
+export { default as PWAControls } from "./PWAControls";

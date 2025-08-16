@@ -14,6 +14,7 @@ import PayCalculator from "./pages/PayCalculator";
 import { LawLimits } from "./components/payCalculator";
 import BottomNav from "./components/ui/BottomNav";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
+import PWAControls from "./components/ui/PWAControls";
 import AdminPanel from "./pages/AdminPanel";
 import useLocalStorage from "./hooks/useLocalStorage";
 import { useTimeCalculations } from "./hooks/useTimeCalculations";
@@ -388,6 +389,7 @@ const App: React.FC = () => {
             settings.darkMode ? "bg-gray-900" : "bg-[#FAF7F0]"
           }`}
         >
+          <PWAControls />
           {/* Onboarding Modal */}
           {showOnboarding && (
             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-3">
