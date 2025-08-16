@@ -9,6 +9,16 @@
     />
     <meta name="theme-color" content="#374151" />
     <link rel="manifest" href="manifest.webmanifest" />
+    
+    <!-- iOS PWA specific meta tags for better authentication support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ShiftPal" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Prevent iOS Safari from treating the app as a regular website -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://apis.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com https://www.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://firebase.googleapis.com https://firebaseinstallations.googleapis.com https://*.google-analytics.com https://region1.google-analytics.com https://*.firebaseapp.com https://*.appspot.com; frame-src https://accounts.google.com https://*.googleusercontent.com https://apis.google.com https://*.firebaseapp.com; worker-src 'self'; child-src 'self' https://accounts.google.com https://*.googleusercontent.com https://apis.google.com https://*.firebaseapp.com; img-src 'self' data: https://lh3.googleusercontent.com;"

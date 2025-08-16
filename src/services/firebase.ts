@@ -63,18 +63,49 @@ export const db = initializeFirestore(app, {
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 
+// Helper function to detect iOS Safari
+function isIOSSafari(): boolean {
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+  return isIOS && isSafari;
+}
+
+// Helper function to detect mobile device
+function isMobileDevice(): boolean {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export async function signInWithGoogle(): Promise<User> {
   try {
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
-  } catch (error) {
-    // Fallback to redirect if popup fails (CSP, blockers, third-party cookies)
-    await signInWithRedirect(auth, provider);
-    const redirectResult = await getRedirectResult(auth);
-    if (!redirectResult) {
-      throw error instanceof Error ? error : new Error("Sign-in failed");
+    // On iOS Safari or mobile devices, use redirect flow directly
+    if (isIOSSafari() || isMobileDevice()) {
+      console.log("Using redirect flow for iOS Safari/mobile device");
+      await signInWithRedirect(auth, provider);
+      // Note: getRedirectResult should be called after the redirect completes
+      // This will be handled in the main app component
+      throw new Error("Redirect initiated - handle result after redirect");
     }
-    return redirectResult.user;
+
+    // On desktop, try popup first, then fallback to redirect
+    try {
+      const result = await signInWithPopup(auth, provider);
+      return result.user;
+    } catch (popupError) {
+      console.log("Popup failed, falling back to redirect:", popupError);
+      await signInWithRedirect(auth, provider);
+      throw new Error("Redirect initiated - handle result after redirect");
+    }
+  } catch (error) {
+    // If it's a redirect error, re-throw it so the app can handle it
+    if (error instanceof Error && error.message.includes("Redirect initiated")) {
+      throw error;
+    }
+    
+    // For other errors, try redirect as final fallback
+    console.log("Sign-in failed, trying redirect as fallback:", error);
+    await signInWithRedirect(auth, provider);
+    throw new Error("Redirect initiated - handle result after redirect");
   }
 }
 

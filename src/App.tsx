@@ -27,6 +27,7 @@ import {
   updateLastLogin,
 } from "./services/firestoreStorage";
 import type { User } from "firebase/auth";
+import { getRedirectResult } from "firebase/auth";
 import {
   setCurrentUserId,
   getCurrentUserId,
@@ -178,6 +179,25 @@ const App: React.FC = () => {
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  // Handle redirect results for Google authentication (especially important for iOS Safari)
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log("Redirect result received:", result.user.email);
+          // The redirect result will trigger onAuthStateChanged above
+          // No need to manually set user state here
+        }
+      } catch (error) {
+        console.error("Error handling redirect result:", error);
+        // Don't throw here - let the auth state change handler deal with it
+      }
+    };
+
+    handleRedirectResult();
   }, []);
 
   // Live-subscribe to the user's profile so role changes reflect instantly
@@ -485,7 +505,7 @@ const App: React.FC = () => {
                 : "bg-[#FAF7F0] sm:border-slate-200/50"
             }`}
           >
-            <div className="flex-1 overflow-hidden pt-2 pr-6 pl-6 pb-0">
+            <div className="flex-1 overflow-hidden pt-2 pr-6 pl-6 pb-safe-area-inset-bottom">
               {activeView === View.WORK && (
                 <WorkLog
                   settings={settings}

@@ -7,6 +7,25 @@
   @apply bg-blue-500 text-white p-4 rounded;
 }
 
+/* iOS Safe Area Support */
+@supports (padding: max(0px)) {
+  .pb-safe-area-inset-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe-area-inset-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .px-safe-area-inset-left {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+  }
+
+  .px-safe-area-inset-right {
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
 /* Additional base styles */
 @layer base {
   html {
