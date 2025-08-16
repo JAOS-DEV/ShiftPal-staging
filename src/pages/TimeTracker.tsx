@@ -133,7 +133,14 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({
 
         // Account for all fixed sections: form, header, total, submit, nav bar, and padding
         const navBarHeight = 44; // Correct bottom navigation height
-        const padding = 44; // Reasonable padding for extra space
+
+        // Dynamic padding that accounts for iOS safe area
+        const isIOS =
+          /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+          /Safari/.test(navigator.userAgent) &&
+          !/Chrome/.test(navigator.userAgent);
+        const safeAreaPadding = isIOS ? 80 : 44; // Extra padding for iOS safe area
+        const padding = safeAreaPadding;
 
         const availableHeight =
           availableViewportHeight -

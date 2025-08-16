@@ -69,6 +69,24 @@ const App: React.FC = () => {
     storageMode: "local",
   });
 
+  // iOS detection
+  const [isIOS, setIsIOS] = useState(false);
+
+  // Detect iOS on component mount
+  useEffect(() => {
+    console.log("🔄 App component mounted");
+    const userAgent = navigator.userAgent;
+    const isIOSSafari =
+      /iPad|iPhone|iPod/.test(userAgent) &&
+      /Safari/.test(userAgent) &&
+      !/Chrome/.test(userAgent);
+    setIsIOS(isIOSSafari);
+
+    return () => {
+      console.log("🔄 App component unmounting");
+    };
+  }, []);
+
   // Onboarding (first run) - DISABLED FOR NOW
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<1 | 2>(1);
@@ -113,17 +131,26 @@ const App: React.FC = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [user]);
 
+  // Firebase Authentication State Management
   useEffect(() => {
+    console.log("🔄 Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log(
+        "Auth state changed:",
+        firebaseUser ? firebaseUser.email : "No user"
+      );
       setUser(firebaseUser);
       setAuthChecked(true);
 
       if (firebaseUser) {
+        console.log("User authenticated:", firebaseUser.email);
         // Check if this is a different user than the one stored in localStorage
         if (isDifferentUser(firebaseUser.uid)) {
+          console.log("Different user, switching data");
           // Different user or fresh sign-in - switch to their data
           switchToUser(firebaseUser.uid);
         } else {
+          console.log("Same user, loading saved data");
           // Same user signing back in - load their saved data
           loadUserData(firebaseUser.uid);
           setCurrentUserId(firebaseUser.uid);
@@ -183,22 +210,55 @@ const App: React.FC = () => {
 
   // Handle redirect results for Google authentication (especially important for iOS Safari)
   useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 5;
+
     const handleRedirectResult = async () => {
       try {
+        attempts++;
+        console.log(
+          `Checking for redirect result (attempt ${attempts}/${maxAttempts})...`
+        );
+
+        // Check if there are any pending redirects
+        console.log("Current auth state:", auth.currentUser);
+        console.log("Auth is initialized:", auth.app.name);
+
         const result = await getRedirectResult(auth);
+        console.log("getRedirectResult returned:", result);
+
         if (result) {
           console.log("Redirect result received:", result.user.email);
+          console.log("User UID:", result.user.uid);
+          console.log("User display name:", result.user.displayName);
           // The redirect result will trigger onAuthStateChanged above
           // No need to manually set user state here
+          return true; // Success
+        } else {
+          console.log("No redirect result found");
+          return false; // No result yet
         }
       } catch (error) {
         console.error("Error handling redirect result:", error);
-        // Don't throw here - let the auth state change handler deal with it
+        return false; // Error occurred
       }
     };
 
-    handleRedirectResult();
-  }, []);
+    const checkRedirectResult = async () => {
+      const success = await handleRedirectResult();
+
+      // If we got a result or hit max attempts, stop trying
+      if (success || attempts >= maxAttempts) {
+        return;
+      }
+
+      // Try again after a delay
+      setTimeout(checkRedirectResult, 500);
+    };
+
+    // Start checking for redirect results
+    checkRedirectResult();
+  }, []); // Empty dependency array ensures this only runs once
 
   // Live-subscribe to the user's profile so role changes reflect instantly
   useEffect(() => {
@@ -503,7 +563,7 @@ const App: React.FC = () => {
               settings.darkMode
                 ? "bg-gray-800 sm:border-gray-600/50"
                 : "bg-[#FAF7F0] sm:border-slate-200/50"
-            }`}
+            } ${isIOS ? "ios-safe-area" : ""}`}
           >
             <div className="flex-1 overflow-hidden pt-2 pr-6 pl-6 pb-safe-area-inset-bottom">
               {activeView === View.WORK && (

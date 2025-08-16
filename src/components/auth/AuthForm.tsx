@@ -72,10 +72,13 @@ const AuthForm: React.FC<AuthFormProps> = ({
   };
 
   const handleGoogleSignIn = async () => {
+    console.log("handleGoogleSignIn called!");
     setError("");
     setLoading(true);
     try {
+      console.log("Calling signInWithGoogle...");
       await signInWithGoogle();
+      console.log("signInWithGoogle completed successfully");
       onSuccess?.();
     } catch (error: any) {
       console.error("Google sign-in failed:", error);
@@ -253,7 +256,10 @@ const AuthForm: React.FC<AuthFormProps> = ({
         </div>
 
         <button
-          onClick={handleGoogleSignIn}
+          onClick={() => {
+            console.log("Google sign-in button clicked!");
+            handleGoogleSignIn();
+          }}
           disabled={loading}
           className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 border rounded-md bg-white hover:bg-gray-50 text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >

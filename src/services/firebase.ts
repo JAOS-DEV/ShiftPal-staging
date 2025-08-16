@@ -41,6 +41,17 @@ if (!firebaseConfig.projectId) {
   );
 }
 
+// Debug Firebase configuration
+console.log("🔧 Firebase Config:", {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  apiKey: firebaseConfig.apiKey ? "✅ Set" : "❌ Missing",
+  storageBucket: firebaseConfig.storageBucket,
+  messagingSenderId: firebaseConfig.messagingSenderId,
+  appId: firebaseConfig.appId ? "✅ Set" : "❌ Missing",
+  measurementId: firebaseConfig.measurementId,
+});
+
 // Initialize Firebase app (singleton by module scope)
 const app = initializeApp(firebaseConfig);
 
@@ -73,39 +84,49 @@ function isIOSSafari(): boolean {
 
 // Helper function to detect mobile device
 function isMobileDevice(): boolean {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 }
 
 export async function signInWithGoogle(): Promise<User> {
   try {
-    // On iOS Safari or mobile devices, use redirect flow directly
-    if (isIOSSafari() || isMobileDevice()) {
-      console.log("Using redirect flow for iOS Safari/mobile device");
-      await signInWithRedirect(auth, provider);
-      // Note: getRedirectResult should be called after the redirect completes
-      // This will be handled in the main app component
-      throw new Error("Redirect initiated - handle result after redirect");
-    }
+    console.log("Starting Google sign-in...");
+    console.log("User agent:", navigator.userAgent);
+    console.log("Is iOS Safari:", isIOSSafari());
+    console.log("Is mobile device:", isMobileDevice());
 
-    // On desktop, try popup first, then fallback to redirect
+    // Try popup first on all devices (including iOS) - it often works better
     try {
+      console.log("Trying popup flow first...");
       const result = await signInWithPopup(auth, provider);
+      console.log("Popup sign-in successful:", result.user.email);
       return result.user;
-    } catch (popupError) {
-      console.log("Popup failed, falling back to redirect:", popupError);
-      await signInWithRedirect(auth, provider);
-      throw new Error("Redirect initiated - handle result after redirect");
+    } catch (popupError: any) {
+      console.log(
+        "Popup failed, falling back to redirect:",
+        popupError.message
+      );
+
+      // If popup fails, use redirect as fallback
+      if (
+        popupError.code === "auth/popup-closed-by-user" ||
+        popupError.code === "auth/popup-blocked" ||
+        popupError.message.includes("Cross-Origin-Opener-Policy")
+      ) {
+        console.log("Using redirect flow as fallback");
+        await signInWithRedirect(auth, provider);
+        // Note: getRedirectResult should be called after the redirect completes
+        // This will be handled in the main app component
+        throw new Error("Redirect initiated - handle result after redirect");
+      } else {
+        // Re-throw other popup errors
+        throw popupError;
+      }
     }
-  } catch (error) {
-    // If it's a redirect error, re-throw it so the app can handle it
-    if (error instanceof Error && error.message.includes("Redirect initiated")) {
-      throw error;
-    }
-    
-    // For other errors, try redirect as final fallback
-    console.log("Sign-in failed, trying redirect as fallback:", error);
-    await signInWithRedirect(auth, provider);
-    throw new Error("Redirect initiated - handle result after redirect");
+  } catch (error: any) {
+    console.error("Google sign-in failed:", error);
+    throw error;
   }
 }
 

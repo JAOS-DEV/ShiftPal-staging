@@ -17,15 +17,29 @@ const BottomNav: React.FC<BottomNavProps> = ({
 }) => {
   const isAdmin = userProfile?.role === "admin";
 
+  // iOS detection for safe area padding
+  const [isIOS, setIsIOS] = React.useState(false);
+
+  React.useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isIOSSafari =
+      /iPad|iPhone|iPod/.test(userAgent) &&
+      /Safari/.test(userAgent) &&
+      !/Chrome/.test(userAgent);
+    setIsIOS(isIOSSafari);
+  }, []);
+
   return (
     <nav
-      className={`backdrop-blur-sm border-t shadow-sm pb-safe-area-inset-bottom ${
+      className={`backdrop-blur-sm border-t shadow-sm ${
+        isIOS ? "pb-safe-area-inset-bottom" : ""
+      } ${
         settings?.darkMode
           ? "bg-gray-800/90 border-gray-600/60"
           : "bg-white/80 border-slate-200/60"
       }`}
     >
-      <div className="flex items-center justify-around px-2 py-3">
+      <div className="flex items-center justify-around px-2 py-1">
         <NavItem
           label="Tracker"
           isActive={activeView === View.WORK}
